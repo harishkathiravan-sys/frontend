@@ -44,6 +44,114 @@ function setNaturalArmPose(vrm) {
   }
 }
 
+function applyIntroPose(vrm, elapsedSeconds) {
+  if (!vrm?.humanoid) {
+    return false;
+  }
+
+  const duration = 3.6;
+  if (elapsedSeconds >= duration) {
+    setNaturalArmPose(vrm);
+    return true;
+  }
+
+  const t = elapsedSeconds / duration;
+  const leftUpperArm = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm);
+  const rightUpperArm = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm);
+  const leftLowerArm = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm);
+  const rightLowerArm = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm);
+  const leftHand = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftHand);
+  const rightHand = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightHand);
+  const head = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head);
+  const chest = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Chest);
+
+  const wave = Math.sin(elapsedSeconds * 9);
+
+  if (t < 0.35) {
+    const k = THREE.MathUtils.smoothstep(t / 0.35, 0, 1);
+    if (leftUpperArm) {
+      leftUpperArm.rotation.z = THREE.MathUtils.lerp(1.15, 0.65, k);
+      leftUpperArm.rotation.x = THREE.MathUtils.lerp(0.04, -0.2, k);
+    }
+    if (rightUpperArm) {
+      rightUpperArm.rotation.z = THREE.MathUtils.lerp(-1.15, -0.65, k);
+      rightUpperArm.rotation.x = THREE.MathUtils.lerp(0.04, -0.2, k);
+    }
+    if (leftLowerArm) {
+      leftLowerArm.rotation.z = THREE.MathUtils.lerp(0.08, 0.38, k);
+    }
+    if (rightLowerArm) {
+      rightLowerArm.rotation.z = THREE.MathUtils.lerp(-0.08, -0.38, k);
+    }
+    if (head) {
+      head.rotation.z = THREE.MathUtils.lerp(0, -0.2, k);
+      head.rotation.x = THREE.MathUtils.lerp(0, 0.08, k);
+    }
+    if (chest) {
+      chest.rotation.y = THREE.MathUtils.lerp(0, 0.08, k);
+    }
+  } else if (t < 0.7) {
+    const k = THREE.MathUtils.smoothstep((t - 0.35) / 0.35, 0, 1);
+    if (leftUpperArm) {
+      leftUpperArm.rotation.z = THREE.MathUtils.lerp(0.65, 1.12, k);
+      leftUpperArm.rotation.x = THREE.MathUtils.lerp(-0.2, 0.02, k);
+    }
+    if (rightUpperArm) {
+      rightUpperArm.rotation.z = -0.45;
+      rightUpperArm.rotation.x = -0.28;
+      rightUpperArm.rotation.y = 0.2;
+    }
+    if (rightLowerArm) {
+      rightLowerArm.rotation.z = -0.24 + wave * 0.18;
+      rightLowerArm.rotation.x = -0.1;
+    }
+    if (rightHand) {
+      rightHand.rotation.z = wave * 0.32;
+      rightHand.rotation.x = -0.08;
+    }
+    if (head) {
+      head.rotation.z = -0.1 + wave * 0.03;
+      head.rotation.x = 0.05;
+    }
+  } else {
+    const k = THREE.MathUtils.smoothstep((t - 0.7) / 0.3, 0, 1);
+    if (leftUpperArm) {
+      leftUpperArm.rotation.z = THREE.MathUtils.lerp(1.12, 1.15, k);
+      leftUpperArm.rotation.x = THREE.MathUtils.lerp(0.02, 0.04, k);
+      leftUpperArm.rotation.y = THREE.MathUtils.lerp(-0.06, -0.04, k);
+    }
+    if (rightUpperArm) {
+      rightUpperArm.rotation.z = THREE.MathUtils.lerp(-0.45, -1.15, k);
+      rightUpperArm.rotation.x = THREE.MathUtils.lerp(-0.28, 0.04, k);
+      rightUpperArm.rotation.y = THREE.MathUtils.lerp(0.2, 0.04, k);
+    }
+    if (leftLowerArm) {
+      leftLowerArm.rotation.z = THREE.MathUtils.lerp(0.18, 0.08, k);
+      leftLowerArm.rotation.x = THREE.MathUtils.lerp(-0.08, -0.02, k);
+    }
+    if (rightLowerArm) {
+      rightLowerArm.rotation.z = THREE.MathUtils.lerp(-0.22, -0.08, k);
+      rightLowerArm.rotation.x = THREE.MathUtils.lerp(-0.08, -0.02, k);
+    }
+    if (leftHand) {
+      leftHand.rotation.x = THREE.MathUtils.lerp(-0.08, -0.02, k);
+    }
+    if (rightHand) {
+      rightHand.rotation.z = THREE.MathUtils.lerp(0.08, 0, k);
+      rightHand.rotation.x = THREE.MathUtils.lerp(-0.08, -0.02, k);
+    }
+    if (head) {
+      head.rotation.z = THREE.MathUtils.lerp(-0.08, 0, k);
+      head.rotation.x = THREE.MathUtils.lerp(0.03, 0, k);
+    }
+    if (chest) {
+      chest.rotation.y = THREE.MathUtils.lerp(0.08, 0, k);
+    }
+  }
+
+  return false;
+}
+
 function Model({ modelUrl, isSpeaking, speechText, speechStartTime, onInteract }) {
   const [modelState, setModelState] = useState({
     object3D: null,
@@ -54,6 +162,9 @@ function Model({ modelUrl, isSpeaking, speechText, speechStartTime, onInteract }
   const pointerTargetRef = useRef({ x: 0, y: 0 });
   const vrmRef = useRef(null);
   const visemeAnimatorRef = useRef(null);
+  const introStartedAtRef = useRef(0);
+  const introFinishedRef = useRef(false);
+  const hasPlayedIntroRef = useRef(false);
 
   useEffect(() => {
     if (!modelUrl) {
@@ -79,6 +190,11 @@ function Model({ modelUrl, isSpeaking, speechText, speechStartTime, onInteract }
           VRMUtils.rotateVRM0(vrm);
           setNaturalArmPose(vrm);
           vrmRef.current = vrm;
+          if (!hasPlayedIntroRef.current) {
+            introStartedAtRef.current = performance.now();
+            introFinishedRef.current = false;
+            hasPlayedIntroRef.current = true;
+          }
           loadedObject = vrm.scene;
         } else {
           vrmRef.current = null;
@@ -131,6 +247,13 @@ function Model({ modelUrl, isSpeaking, speechText, speechStartTime, onInteract }
     if (vrmRef.current) {
       vrmRef.current.update(delta);
 
+      if (!introFinishedRef.current && introStartedAtRef.current > 0) {
+        const introDone = applyIntroPose(vrmRef.current, (performance.now() - introStartedAtRef.current) / 1000);
+        if (introDone) {
+          introFinishedRef.current = true;
+        }
+      }
+
       // Apply viseme animation if speech is active
       if (isSpeaking && visemeAnimatorRef.current && speechStartTime > 0) {
         const elapsedSeconds = (Date.now() - speechStartTime) / 1000;
@@ -141,7 +264,7 @@ function Model({ modelUrl, isSpeaking, speechText, speechStartTime, onInteract }
 
     if (modelRootRef.current) {
       const t = Date.now() * 0.001;
-      modelRootRef.current.position.y = -1.28 + Math.sin(t * 2.2) * 0.004;
+      modelRootRef.current.position.y = -1.0 + Math.sin(t * 2.2) * 0.004;
       modelRootRef.current.rotation.y += (pointerTargetRef.current.x - modelRootRef.current.rotation.y) * 0.07;
       modelRootRef.current.rotation.x += (pointerTargetRef.current.y - modelRootRef.current.rotation.x) * 0.07;
     }
@@ -160,7 +283,7 @@ function Model({ modelUrl, isSpeaking, speechText, speechStartTime, onInteract }
   return (
     <group
       ref={modelRootRef}
-      position={[0, -1.28, 0]}
+      position={[0, -1.0, 0]}
       onPointerMove={(event) => {
         pointerTargetRef.current.x = THREE.MathUtils.clamp(event.point.x * 0.15, -0.22, 0.22);
         pointerTargetRef.current.y = THREE.MathUtils.clamp((event.point.y - 1.2) * -0.08, -0.08, 0.12);
@@ -207,7 +330,7 @@ export default function AvatarScene({
         onInteract={onInteract}
       />
       <ContactShadows
-        position={[0, -1.28, 0]}
+        position={[0, -1.0, 0]}
         opacity={0.35}
         scale={10}
         blur={2.1}

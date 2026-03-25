@@ -1,12 +1,14 @@
 :root {
-  --bg-0: #05070d;
-  --bg-1: #0a1130;
-  --glass: rgba(10, 18, 42, 0.46);
-  --glass-border: rgba(154, 188, 255, 0.28);
+  --bg-0: #140f2b;
+  --bg-1: #322157;
+  --glass: rgba(36, 24, 66, 0.42);
+  --glass-border: rgba(224, 193, 255, 0.28);
   --text-main: #f4f7ff;
-  --text-soft: #b8c4df;
-  --accent: #56d6ff;
-  --accent-2: #6dffb5;
+  --text-soft: #d7ccec;
+  --accent: #c596ff;
+  --accent-2: #d9a9ff;
+  --pointer-x: 50;
+  --pointer-y: 50;
   --shadow: 0 16px 42px rgba(0, 0, 0, 0.48);
 }
 
@@ -25,17 +27,42 @@ body,
 body {
   font-family: "Space Grotesk", "Segoe UI", sans-serif;
   background:
-    radial-gradient(circle at 25% 12%, rgba(61, 130, 255, 0.24), transparent 38%),
-    radial-gradient(circle at 78% 78%, rgba(12, 215, 161, 0.18), transparent 30%),
-    linear-gradient(140deg, var(--bg-0), var(--bg-1));
+    radial-gradient(
+      circle at calc(var(--pointer-x) * 1%) calc(var(--pointer-y) * 1%),
+      rgba(216, 162, 255, 0.3),
+      transparent 34%
+    ),
+    radial-gradient(circle at 15% 10%, rgba(188, 151, 255, 0.22), transparent 40%),
+    radial-gradient(circle at 84% 78%, rgba(156, 129, 255, 0.19), transparent 34%),
+    radial-gradient(circle at 52% 48%, rgba(111, 92, 189, 0.28), transparent 52%),
+    linear-gradient(150deg, var(--bg-0), var(--bg-1));
   color: var(--text-main);
   overflow: hidden;
+  transition: background 0.35s ease;
 }
 
 .immersive-shell {
   position: relative;
   width: 100vw;
   height: 100vh;
+  isolation: isolate;
+}
+
+.immersive-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at calc(var(--pointer-x) * 1%) calc(var(--pointer-y) * 1%),
+      rgba(236, 186, 255, 0.26),
+      rgba(188, 137, 255, 0.12) 22%,
+      transparent 52%
+    );
+  filter: blur(10px);
+  animation: breatheGlow 7.2s ease-in-out infinite;
 }
 
 .background-orb {
@@ -49,7 +76,7 @@ body {
 .orb-one {
   width: 300px;
   height: 300px;
-  background: rgba(86, 214, 255, 0.25);
+  background: rgba(221, 173, 255, 0.2);
   top: -80px;
   left: -70px;
 }
@@ -57,7 +84,7 @@ body {
 .orb-two {
   width: 240px;
   height: 240px;
-  background: rgba(109, 255, 181, 0.2);
+  background: rgba(179, 147, 255, 0.2);
   right: -58px;
   bottom: 16%;
   animation-delay: 1.2s;
@@ -106,28 +133,62 @@ body {
   left: 50%;
   bottom: 22px;
   transform: translateX(-50%);
-  width: min(460px, calc(100% - 30px));
+  width: min(680px, calc(100% - 30px));
   padding: 0.72rem;
   display: flex;
   justify-content: center;
 }
 
+.talk-controls {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.62rem;
+  align-items: center;
+}
+
+.talk-input {
+  border: 1px solid rgba(226, 193, 255, 0.42);
+  border-radius: 14px;
+  padding: 0.88rem 1rem;
+  width: 100%;
+  font-size: 0.98rem;
+  color: var(--text-main);
+  background:
+    linear-gradient(140deg, rgba(76, 53, 125, 0.52), rgba(45, 30, 82, 0.46)),
+    radial-gradient(circle at 15% 12%, rgba(216, 172, 255, 0.26), transparent 55%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 8px 20px rgba(128, 90, 192, 0.24);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.talk-input::placeholder {
+  color: rgba(232, 219, 247, 0.78);
+}
+
+.talk-input:focus {
+  border-color: rgba(221, 168, 255, 0.82);
+  box-shadow: 0 0 0 4px rgba(197, 150, 255, 0.18), 0 12px 26px rgba(128, 90, 192, 0.34);
+  transform: translateY(-1px);
+}
+
 .hud-bottom button {
   border: 0;
   border-radius: 14px;
-  width: 100%;
+  width: 180px;
   padding: 0.9rem 1.2rem;
   background: linear-gradient(120deg, var(--accent), var(--accent-2));
-  color: #06131b;
+  color: #231339;
   font-size: 1.02rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
 .hud-bottom button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(56, 212, 255, 0.35);
+  box-shadow: 0 12px 28px rgba(197, 150, 255, 0.35);
+  filter: saturate(1.08);
 }
 
 .hud-bottom button:active {
@@ -135,7 +196,7 @@ body {
 }
 
 .hud-bottom button.speaking {
-  box-shadow: 0 0 0 4px rgba(86, 214, 255, 0.2), 0 12px 32px rgba(56, 212, 255, 0.42);
+  box-shadow: 0 0 0 4px rgba(197, 150, 255, 0.24), 0 12px 32px rgba(197, 150, 255, 0.42);
 }
 
 .fade-up {
@@ -169,6 +230,19 @@ body {
   }
 }
 
+@keyframes breatheGlow {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.035);
+  }
+}
+
 @media (max-width: 900px) {
   .hud-top {
     left: 12px;
@@ -179,5 +253,13 @@ body {
   .hud-bottom {
     width: calc(100% - 24px);
     bottom: 12px;
+  }
+
+  .talk-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .hud-bottom button {
+    width: 100%;
   }
 }
